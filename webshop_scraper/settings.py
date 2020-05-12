@@ -65,6 +65,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 RETRY_ENABLED = True
 RETRY_TIMES = 10
+# RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429] (Default)
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -102,3 +103,4 @@ IMAGES_STORE = "./data/img"
 
 # Logging
 LOG_LEVEL = "INFO"
+
