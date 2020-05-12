@@ -20,7 +20,9 @@ class AmazonScraperRetryMiddleware(RetryMiddleware):
 
         if issubclass(response.__class__, TextResponse):
             page_title = response.css("title::text").get()
-            if page_title == spider.retry_title:
+
+            # Retry the request if encountering this page title
+            if page_title == "Robot Check":
                 return self._retry(request, "Encountered Robot Check.", spider)
 
         return response

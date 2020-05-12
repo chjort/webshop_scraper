@@ -1,5 +1,5 @@
-import os
 import datetime
+import os
 
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -13,6 +13,6 @@ cool_save_dir = os.path.join("data", CoolshopScraper.name + "_" + str(crawl_time
 
 settings = get_project_settings()
 process = CrawlerProcess(settings=settings)
-# process.crawl(AmazonScraper, n_pages=10, product_save_dir=amz_save_dir)
+# process.crawl(AmazonScraper, n_pages=2, product_save_dir=amz_save_dir)
 process.crawl(CoolshopScraper, n_pages=1, product_save_dir=cool_save_dir)
 process.start()
