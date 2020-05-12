@@ -74,7 +74,8 @@ class AmazonScraper(scrapy.Spider):
         urls = [
             # "https://www.amazon.co.uk/s?rh=n%3A468292%2Cp_72%3A4-&pf_rd_i=468292&pf_rd_p=d40c144e-45ba-5915-b01d-d92bd82e9a59&pf_rd_r=9AHN48N59BT4GF71E1G8&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE",
             # "https://www.amazon.co.uk/s?rh=n%3A117332031%2Cp_72%3A4-&pf_rd_i=117332031&pf_rd_p=4c8654cd-5980-5a4f-a532-3db1a3a6d579&pf_rd_r=AWW9M71158D9EAAAR8KB&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE",
-            "https://www.amazon.co.uk/s?i=sports&rh=n%3A461182031%2Cp_72%3A184323031&pf_rd_i=461182031&pf_rd_p=e9bb2e37-191c-532b-9180-73d951e30279&pf_rd_r=8R8CEN6NH34W6VM2610X&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE"
+            # "https://www.amazon.co.uk/s?i=sports&rh=n%3A461182031%2Cp_72%3A184323031&pf_rd_i=461182031&pf_rd_p=e9bb2e37-191c-532b-9180-73d951e30279&pf_rd_r=8R8CEN6NH34W6VM2610X&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE"
+            "https://www.amazon.co.uk/s?rh=n%3A5866054031%2Cp_72%3A4-&pf_rd_i=5866054031&pf_rd_p=4ad30a04-262e-55f5-a315-4c86a63048cb&pf_rd_r=WTMSQNPE0Z6818GG7NMB&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE"
         ]
 
         for url in urls:
