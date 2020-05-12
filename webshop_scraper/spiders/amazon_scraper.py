@@ -45,7 +45,7 @@ class AmazonScraper(scrapy.Spider):
     scraper_proxy = "http://scraperapi:{}@proxy-server.scraperapi.com:8001".format(API_KEY)
 
     #
-    product_save_dir = "data/products"
+    product_save_dir = "data/{}".format(name)
     scraped_urls_file = "scraped_urls.txt"
     scraped_urls = load_scraped_urls(scraped_urls_file)
 
