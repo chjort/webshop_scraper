@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import shutil
+import threading
 
 from scrapy.utils.python import to_bytes
 
@@ -17,6 +18,8 @@ from .items import Product, ProductVariant
 
 
 class ProductPipeline:
+    lock = threading.Lock()
+
     def open_spider(self, spider):
         self.scraped_urls_file = open(spider.scraped_urls_file, "a")
         self.output_dir = spider.product_save_dir
@@ -31,7 +34,7 @@ class ProductPipeline:
         if isinstance(item, Product):
             prod_url = item["url"]
             if len(image_names) < self.min_images:
-                self.scraped_urls_file.write(prod_url + "\n")
+                self._mark_url_scraped(prod_url, spider)
                 return item
             new_image_names = ["0_" + os.path.basename(name) for name in image_names]
             info = {"title": item["title"],
@@ -60,9 +63,19 @@ class ProductPipeline:
             with open(info_file, "w") as f:
                 json.dump(info, f)
 
-            self.scraped_urls_file.write(prod_url + "\n")
+            self._mark_url_scraped(prod_url, spider)
 
         return item
+
+    def _mark_url_scraped(self, url, spider):
+        try:
+            self.lock.acquire()
+            self.scraped_urls_file.write(url + "\n")
+            spider.scraped_urls.add(url)
+        except:
+            pass
+        finally:
+            self.lock.release()
 
     def _make_product_folder(self, product_url):
         product_folder_name = hashlib.sha1(to_bytes(product_url)).hexdigest()
