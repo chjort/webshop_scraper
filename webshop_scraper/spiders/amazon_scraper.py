@@ -163,10 +163,11 @@ class AmazonScraper(scrapy.Spider):
         yield variant
 
     def proxy_request(self, url, callback, meta=None):
-        if meta is not None:
-            meta["proxy"] = self.scraper_proxy
-        else:
-            meta = {"proxy": self.scraper_proxy}
+        if self.scraper_proxy is not None:
+            if meta is not None:
+                meta["proxy"] = self.scraper_proxy
+            else:
+                meta = {"proxy": self.scraper_proxy}
 
         return self.request(url, callback, meta)
 
