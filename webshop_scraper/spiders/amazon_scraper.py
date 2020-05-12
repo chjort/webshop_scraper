@@ -22,7 +22,7 @@ class AmazonScraper(scrapy.Spider):
     name = "amazon_scraper"
 
     # How many pages you want to scrape
-    no_of_pages = 1
+    n_pages = 1
 
     # To scrape product variants
     include_variants = True
@@ -32,7 +32,6 @@ class AmazonScraper(scrapy.Spider):
 
     # HTML extractor
     selector_file = 'webshop_scraper/selectors_product.yml'
-    print(selector_file)
     extractor = Extractor.from_yaml_file(selector_file)
 
     # HTML image regex
@@ -45,10 +44,12 @@ class AmazonScraper(scrapy.Spider):
     API_KEY = "9244ba171bff5bb2139d5403c443ee87"
     scraper_proxy = "http://scraperapi:{}@proxy-server.scraperapi.com:8001".format(API_KEY)
 
+    #
+    product_save_dir = "data/products"
     scraped_urls_file = "scraped_urls.txt"
     scraped_urls = load_scraped_urls(scraped_urls_file)
-    product_save_dir = "data/products"
 
+    #
     headers = {
         'pragma': 'no-cache',
         'cache-control': 'no-cache',
@@ -59,36 +60,47 @@ class AmazonScraper(scrapy.Spider):
         'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
     }
 
+    def __init__(self, n_pages=None, product_save_dir=None, scraped_urls_file=None):
+        super().__init__(name=self.name)
+        if n_pages is not None:
+            self.n_pages = n_pages
+        if product_save_dir is not None:
+            self.product_save_dir = product_save_dir
+        if scraped_urls_file is not None:
+            self.scraped_urls_file = scraped_urls_file
+
     def start_requests(self):
         # starting urls for scraping
         urls = [
-            "https://www.amazon.co.uk/s?rh=n%3A468292%2Cp_72%3A4-&pf_rd_i=468292&pf_rd_p=d40c144e-45ba-5915-b01d-d92bd82e9a59&pf_rd_r=9AHN48N59BT4GF71E1G8&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE"]
+            "https://www.amazon.co.uk/s?rh=n%3A468292%2Cp_72%3A4-&pf_rd_i=468292&pf_rd_p=d40c144e-45ba-5915-b01d-d92bd82e9a59&pf_rd_r=9AHN48N59BT4GF71E1G8&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE",
+            "https://www.amazon.co.uk/s?rh=n%3A117332031%2Cp_72%3A4-&pf_rd_i=117332031&pf_rd_p=4c8654cd-5980-5a4f-a532-3db1a3a6d579&pf_rd_r=AWW9M71158D9EAAAR8KB&pf_rd_s=merchandised-search-11&pf_rd_t=BROWSE"
+        ]
 
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse, headers=self.headers, meta={"proxy": self.scraper_proxy})
+            self.n_pages_to_scrape = self.n_pages
+            yield self.proxy_request(url, callback=self.parse)
 
     def parse(self, response):
-        self.no_of_pages -= 1
+        self.n_pages_to_scrape -= 1
 
         products = response.xpath("//span[@class='rush-component' and @data-component-type='s-product-image']").xpath(
             "a").xpath("@href").getall()
         products = ["/".join(url.split("/")[:4]) for url in products]
-        print("Number of products on page:", len(products))
+        self.logger.info("Number of products on page: {}".format(len(products)))
 
         for product in products:
             url = response.urljoin(product)
             if url not in self.scraped_urls:
-                yield scrapy.Request(url=url, callback=self.parse_product, headers=self.headers,
-                                     meta={"proxy": self.scraper_proxy})
+                yield self.proxy_request(url, callback=self.parse_product)
 
-        if (self.no_of_pages > 0):
+        if self.n_pages_to_scrape > 0:
             next_page_url = response.xpath("//ul[@class='a-pagination']/li[@class='a-last']/a").xpath("@href").get()
             url = response.urljoin(next_page_url)
-            yield scrapy.Request(url=url, callback=self.parse, headers=self.headers)
+            yield self.proxy_request(url, callback=self.parse)
 
     def parse_product(self, response):
         title = response.xpath("//span[@id='productTitle']//text()").get()
-        print("TITLE:", title)
+        self.logger.info("TITLE: {}".format(title))
 
         url = response.url
         html = response.text
@@ -110,13 +122,12 @@ class AmazonScraper(scrapy.Spider):
                     variant_asin = variant["asin"]
                     variant_asins.append(variant_asin)
                     variant_url = url + variant_suffix
-                    yield scrapy.Request(variant_url, callback=self.parse_variant, headers=self.headers,
-                                         meta={
-                                             "product_url": url,
-                                             "name": variant["name"],
-                                             "asin": variant_asin,
-                                             "proxy": self.scraper_proxy
-                                         })
+                    yield self.proxy_request(variant_url, callback=self.parse_variant,
+                                             meta={
+                                                 "product_url": url,
+                                                 "name": variant["name"],
+                                                 "asin": variant_asin,
+                                             })
         else:
             variant_asins = None
 
@@ -142,22 +153,34 @@ class AmazonScraper(scrapy.Spider):
         variant = ProductVariant(product_url=product_url, name=name, asin=asin, image_urls=image_urls)
         yield variant
 
-    def validate_variant(self, variant_type):
-        variant_type = str(variant_type).lower()
+    def proxy_request(self, url, callback, meta=None):
+        if meta is not None:
+            meta["proxy"] = self.scraper_proxy
+        else:
+            meta = {"proxy": self.scraper_proxy}
 
-        if "color" in variant_type or "colour" in variant_type:
-            return True
+        return self.request(url, callback, meta)
 
-        return False
+    def request(self, url, callback, meta=None):
+        return scrapy.Request(url=url, callback=callback, headers=self.headers, meta=meta)
 
     def extract_image_urls(self, html):
         try:
             data = self.image_pattern.search(html)
             images = data.group(1)
         except AttributeError:
-            print("No image carousel in page.")
+            # no image carousel in page
             return []
 
         images = json.loads(images)
         images = [img["hiRes"] for img in images]
         return list(filter(None, images))
+
+    @staticmethod
+    def validate_variant(variant_type):
+        variant_type = str(variant_type).lower()
+
+        if "color" in variant_type or "colour" in variant_type:
+            return True
+
+        return False
