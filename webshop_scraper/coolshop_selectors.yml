@@ -1,0 +1,29 @@
+name:
+    css: '#productTitle'
+    type: Text
+short_description:
+    css: '#featurebullets_feature_div'
+    type: Text
+product_description:
+    css: '#productDescription'
+    type: Text
+variant_type:
+    css: 'form.a-section label'
+    type: Text
+variants:
+    css: 'form.a-section li'
+    multiple: true
+    type: Text
+    children:
+        name:
+            css: ""
+            type: Attribute
+            attribute: title
+        asin:
+            css: ""
+            type: Attribute
+            attribute: data-defaultasin
+        url_suffix:
+            css: ""
+            type: Attribute
+            attribute: data-dp-url
