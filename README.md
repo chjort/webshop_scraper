@@ -1,5 +1,5 @@
 # Amazon Product Scraper
-`Amazon Product Scraper` built with `scapy`
+`Amazon Product Scraper` built with `Scrapy`
 
 # Features
 it scrape various things
