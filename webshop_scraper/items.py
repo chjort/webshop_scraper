@@ -18,6 +18,10 @@ class Product(scrapy.Item):
     image_urls = scrapy.Field()
     images = scrapy.Field()
 
+    def __repr__(self):
+        repstr = "{}: {} images".format(self["title"], len(self["image_urls"]))
+        return repstr
+
 
 class ProductVariant(scrapy.Item):
     product_url = scrapy.Field()
@@ -25,3 +29,7 @@ class ProductVariant(scrapy.Item):
     asin = scrapy.Field()
     image_urls = scrapy.Field()
     images = scrapy.Field()
+
+    def __repr__(self):
+        reprstr = "{}: {} images".format(self["asin"], len(self["image_urls"]))
+        return reprstr
