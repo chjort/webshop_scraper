@@ -31,7 +31,7 @@ class AmazonScraper(scrapy.Spider):
     retry_title = "Robot Check"
 
     # HTML extractor
-    selector_file = 'amazon_scraper/selectors_product.yml'
+    selector_file = 'webshop_scraper/selectors_product.yml'
     print(selector_file)
     extractor = Extractor.from_yaml_file(selector_file)
 

@@ -1141,5 +1141,53 @@
         "checksum": "9330b872a2b3eb7fe7211ded58a61338"
       }
     ]
+  },
+  {
+    "title": "Intex 8-Ft Easy Set Pool Cover, blue",
+    "short_description": "Suitable for: Intex Easy Set Pool Material: High-quality polyethylene Overlap: 30 cm Insert: Lead Easy to use to prevent dirt in the water",
+    "product_description": "Size Name: 8 ft Cover Help to protect your pool with this Intex easy set pool cover. Providing a snug fit over the edge of the pool, this durable cover includes a rope tie to keep the cover from blowing away and drainage holes to prevent water accumulation. A brilliant pool cover to help keep bugs and debris out during the peak of summer. Measures: 8ft",
+    "variant_type": "Size Name:",
+    "variant_asins": null,
+    "image_urls": [
+      "https://images-na.ssl-images-amazon.com/images/I/513avKYtWlL._AC_SL1024_.jpg",
+      "https://images-na.ssl-images-amazon.com/images/I/A1fIvx9UMLL._AC_SL1500_.jpg",
+      "https://images-na.ssl-images-amazon.com/images/I/71d7nWE-CXL._AC_SL1500_.jpg",
+      "https://images-na.ssl-images-amazon.com/images/I/71d7nWE-CXL._AC_SL1500_.jpg",
+      "https://images-na.ssl-images-amazon.com/images/I/51f7lgkk0UL._AC_SL1000_.jpg",
+      "https://images-na.ssl-images-amazon.com/images/I/81y5B3fuSEL._AC_SL1500_.jpg"
+    ],
+    "url": "https://www.amazon.co.uk/Intex-8-Ft-Easy-Pool-Cover/dp/B00012TL2A",
+    "images": [
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/513avKYtWlL._AC_SL1024_.jpg",
+        "path": "full/eefcaadad5bf724889908002db677629d2e3c533.jpg",
+        "checksum": "7446f9cbf1be64ba9295068355957edb"
+      },
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/A1fIvx9UMLL._AC_SL1500_.jpg",
+        "path": "full/73d94888f9b9811dc424ad851ad4e3f43256290c.jpg",
+        "checksum": "102a0f6b1d8e8e73a05682ee05543c25"
+      },
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/71d7nWE-CXL._AC_SL1500_.jpg",
+        "path": "full/a0b743a8d4bdbd84cf15310969c28be89074b94e.jpg",
+        "checksum": "accc142de64a4b2ad66f13fb7ba1af04"
+      },
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/71d7nWE-CXL._AC_SL1500_.jpg",
+        "path": "full/a0b743a8d4bdbd84cf15310969c28be89074b94e.jpg",
+        "checksum": "accc142de64a4b2ad66f13fb7ba1af04"
+      },
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/51f7lgkk0UL._AC_SL1000_.jpg",
+        "path": "full/3df7fa1250d97d30fd7c6fa9f50e7973aefc0601.jpg",
+        "checksum": "bb132878f3631fef2d69ebf92a81a5d8"
+      },
+      {
+        "url": "https://images-na.ssl-images-amazon.com/images/I/81y5B3fuSEL._AC_SL1500_.jpg",
+        "path": "full/08956357009a2a4d4d1073c5450410162d2f31cd.jpg",
+        "checksum": "67e3792e1e3f61bfaf105f8f2de2e33b"
+      }
+    ]
   }
 ]

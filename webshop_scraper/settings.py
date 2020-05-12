@@ -55,7 +55,7 @@ ROBOTSTXT_OBEY = True
 DOWNLOADER_MIDDLEWARES = {
     # 'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     # 'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
-    'amazon_scraper.middlewares.AmazonScraperRetryMiddleware': 630
+    'webshop_scraper.middlewares.AmazonScraperRetryMiddleware': 630
 }
 
 # ROTATING_PROXY_LIST = [
@@ -64,7 +64,7 @@ DOWNLOADER_MIDDLEWARES = {
 # ]
 
 RETRY_ENABLED = True
-RETRY_TIMES = 20
+RETRY_TIMES = 10
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -75,7 +75,7 @@ RETRY_TIMES = 20
 # Configure item pipelines
 ITEM_PIPELINES = {
     'scrapy.pipelines.images.ImagesPipeline': 100,
-    'amazon_scraper.pipelines.ProductPipeline': 200,
+    'webshop_scraper.pipelines.ProductPipeline': 200,
 }
 IMAGES_STORE = "./data/img"
 
