@@ -77,15 +77,14 @@ class AmazonScraper(scrapy.Spider):
         ]
 
         for url in urls:
-            self.n_pages_to_scrape = self.n_pages
-            yield self.proxy_request(url, callback=self.parse)
+            yield self.proxy_request(url, callback=self.parse, meta={"n_pages_to_scrape": self.n_pages})
 
     def parse(self, response):
-        self.n_pages_to_scrape -= 1
-
         products = response.xpath("//span[@class='rush-component' and @data-component-type='s-product-image']").xpath(
             "a").xpath("@href").getall()
         products = ["/".join(url.split("/")[:4]) for url in products]
+
+        self.logger.info("Crawling {}".format(response.url))
         self.logger.info("Number of products on page: {}".format(len(products)))
 
         for product in products:
@@ -93,26 +92,28 @@ class AmazonScraper(scrapy.Spider):
             if url not in self.scraped_urls:
                 yield self.proxy_request(url, callback=self.parse_product)
 
-        if self.n_pages_to_scrape > 0:
+        n_pages_to_scrape = response.meta["n_pages_to_scrape"]
+        n_pages_to_scrape = n_pages_to_scrape - 1
+        if n_pages_to_scrape > 0:
             next_page_url = response.xpath("//ul[@class='a-pagination']/li[@class='a-last']/a").xpath("@href").get()
             url = response.urljoin(next_page_url)
-            yield self.proxy_request(url, callback=self.parse)
+            yield self.proxy_request(url, callback=self.parse, meta={"n_pages_to_scrape": n_pages_to_scrape})
 
     def parse_product(self, response):
-        title = response.xpath("//span[@id='productTitle']//text()").get()
-        self.logger.info("TITLE: {}".format(title))
-
         url = response.url
         html = response.text
 
-        images = self.extract_image_urls(html)
         data = self.extractor.extract(html)
-
         title = data["name"]
         short_desc = data["short_description"]
         prod_desc = data["product_description"]
         variants = data["variants"]
         variant_type = data["variant_type"]
+
+        self.logger.info("TITLE: {}".format(title))
+
+        images = self.extract_image_urls(html)
+        self.logger.info("images: {}".format(len(images)))
 
         if self.include_variants and self.validate_variant(variant_type) and variants is not None:
             variant_asins = []
@@ -125,11 +126,14 @@ class AmazonScraper(scrapy.Spider):
                     yield self.proxy_request(variant_url, callback=self.parse_variant,
                                              meta={
                                                  "product_url": url,
+                                                 "title": title,
                                                  "name": variant["name"],
                                                  "asin": variant_asin,
                                              })
+            self.logger.info("variants: {}".format(len(variant_asins)))
         else:
             variant_asins = None
+            self.logger.info("variants: {}".format(variant_asins))
 
         product = Product(title=title,
                           short_description=short_desc,
@@ -149,6 +153,9 @@ class AmazonScraper(scrapy.Spider):
         name = response.meta["name"]
         asin = response.meta["asin"]
         image_urls = self.extract_image_urls(html)
+
+        product_title = response.meta["title"]
+        self.logger.info("Variant {}-{}: {} images".format(asin, product_title, len(image_urls)))
 
         variant = ProductVariant(product_url=product_url, name=name, asin=asin, image_urls=image_urls)
         yield variant
