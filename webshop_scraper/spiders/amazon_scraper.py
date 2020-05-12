@@ -46,7 +46,7 @@ class AmazonScraper(scrapy.Spider):
 
     #
     product_save_dir = "data/{}".format(name)
-    scraped_urls_file = "scraped_urls.txt"
+    scraped_urls_file = "{}_scraped_urls.txt".format(name)
     scraped_urls = load_scraped_urls(scraped_urls_file)
 
     #
