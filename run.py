@@ -11,5 +11,5 @@ save_dir = os.path.join("data", str(crawl_time))
 
 settings = get_project_settings()
 process = CrawlerProcess(settings=settings)
-process.crawl(AmazonScraper, n_pages=2, product_save_dir=save_dir)
+process.crawl(AmazonScraper, n_pages=4, product_save_dir=save_dir)
 process.start()
