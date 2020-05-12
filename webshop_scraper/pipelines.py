@@ -61,7 +61,7 @@ class ProductPipeline:
         if info is not None:
             info_file = os.path.join(product_folder, "info.json")
             with open(info_file, "w") as f:
-                json.dump(info, f)
+                json.dump(info, f, indent=2)
 
             self._mark_url_scraped(prod_url, spider)
 
