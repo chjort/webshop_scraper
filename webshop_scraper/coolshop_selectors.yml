@@ -1,17 +1,17 @@
 name:
-    css: '#productTitle'
+    xpath: "//div[@class='thing-header']"
     type: Text
 short_description:
-    css: '#featurebullets_feature_div'
+    xpath: "//div[@class='thing-short-description']"
     type: Text
 product_description:
-    css: '#productDescription'
+    xpath: "//div[@id='productDescription']"
     type: Text
 variant_type:
-    css: 'form.a-section label'
+    css: "form.a-section label"
     type: Text
 variants:
-    css: 'form.a-section li'
+    css: "form.a-section li"
     multiple: true
     type: Text
     children:
