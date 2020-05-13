@@ -59,7 +59,9 @@ class WebshopScraper(scrapy.Spider, abc.ABC):
             yield self.proxy_request(url, callback=self.parse, meta={"n_pages_to_scrape": self.n_pages})
 
     def parse(self, response):
-        self.logger.info("Crawling {}".format(response.url))
+        n_pages_to_scrape = response.meta["n_pages_to_scrape"]
+        self.logger.info(
+            "[{}/{}] Crawling {}".format(self.n_pages - n_pages_to_scrape + 1, self.n_pages, response.url))
 
         products = self.get_product_pages(response)
         self.logger.info("Number of products on page: {}".format(len(products)))
@@ -68,7 +70,6 @@ class WebshopScraper(scrapy.Spider, abc.ABC):
             if url not in self.scraped_urls:
                 yield self.proxy_request(url, callback=self.parse_product)
 
-        n_pages_to_scrape = response.meta["n_pages_to_scrape"]
         n_pages_to_scrape = n_pages_to_scrape - 1
         if n_pages_to_scrape > 0:
             next_url = self.get_next_page_url(response)
@@ -84,10 +85,7 @@ class WebshopScraper(scrapy.Spider, abc.ABC):
         variants = data.get("variants")
         variant_type = data.get("variant_type")
 
-        self.logger.info("TITLE: {}".format(title))
-
         images = self.get_product_image_urls(response)
-        self.logger.info("images: {}".format(len(images)))
 
         if self.include_variants and self.validate_variant(variant_type) and variants is not None:
             variant_asins = []
@@ -104,10 +102,12 @@ class WebshopScraper(scrapy.Spider, abc.ABC):
                                                  "name": variant["name"],
                                                  "asin": variant_asin,
                                              })
-            self.logger.info("variants: {}".format(len(variant_asins)))
+            n_variants = len(variant_asins)
         else:
             variant_asins = None
-            self.logger.info("variants: {}".format(variant_asins))
+            n_variants = 0
+
+        self.logger.info("Product: {} images, {} variants - {}".format(len(images), n_variants, title))
 
         product = Product(title=title,
                           short_description=short_desc,
@@ -127,7 +127,7 @@ class WebshopScraper(scrapy.Spider, abc.ABC):
         image_urls = self.get_product_image_urls(response)
 
         product_title = response.meta["title"]
-        self.logger.info("Variant {}-{}: {} images".format(asin, product_title, len(image_urls)))
+        self.logger.info("Variant: {} images, {} - {}".format(len(image_urls), name, product_title))
 
         variant = ProductVariant(product_url=product_url, name=name, asin=asin, image_urls=image_urls)
         yield variant
