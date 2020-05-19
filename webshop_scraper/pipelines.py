@@ -93,3 +93,10 @@ class ProductPipeline:
             shutil.rmtree(self.image_folder)
         except Exception:
             pass
+
+        stats_file = self.output_dir + ".txt"
+        with open(stats_file, "w") as f:
+            stats = dict(spider.crawler.stats.get_stats())
+            for key in stats.keys():
+                stats[key] = str(stats[key])
+            json.dump(stats, f, indent=2)
