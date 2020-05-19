@@ -73,7 +73,7 @@ def move_file_old(filepath):
 class Plotter:
     def __init__(self, max_imgs_per_row=4):
         self.max_imgs_per_row = max_imgs_per_row
-        self.fig = plt.figure()
+        self.fig = plt.figure(figsize=(16, 12))
         self.axes = []
         plt.box(on=None)
         plt.ion()
