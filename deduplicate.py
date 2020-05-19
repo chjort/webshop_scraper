@@ -112,7 +112,7 @@ class Plotter:
         subdir_colors = {}
         for i, subdir in enumerate(img_subdirs):
             if subdir not in subdir_colors:
-                subdir_colors[subdir] =spine_colors[i]
+                subdir_colors[subdir] = spine_colors[i]
 
         n_subdirs = len(subdir_colors.keys())
         if n_subdirs > len(spine_colors):
@@ -146,7 +146,7 @@ class Plotter:
         handles = [patches.Patch(color=c) for c in subdir_colors.values()]
         self.legend = plt.figlegend(labels=labels, handles=handles,
                                     loc="upper center", bbox_to_anchor=(0.5, 1),
-                                    ncol=n_subdirs, frameon=False,
+                                    ncol=n_subdirs % 4, frameon=False,
                                     borderpad=3)
         plt.draw()
 
