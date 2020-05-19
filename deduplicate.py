@@ -108,7 +108,7 @@ class Plotter:
         img_subdirs = [get_subdir(img_path) for img_path in img_list]
         unique_subdirs = set(img_subdirs)
         if len(unique_subdirs) > len(spine_colors):
-            raise ValueError("More subdirectories than colors!")
+            title = title + "\nMore subdirectories than colors!"
 
         subdir_colors = {subdir: spine_colors[i] for i, subdir in enumerate(unique_subdirs)}
         for i in range(n_imgs):
