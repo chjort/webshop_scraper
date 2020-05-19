@@ -2,6 +2,7 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
+from matplotlib import patches
 import numpy as np
 
 
@@ -75,6 +76,7 @@ class Plotter:
         self.max_imgs_per_row = max_imgs_per_row
         self.fig = plt.figure(figsize=(16, 12))
         self.axes = []
+        self.legend = None
         plt.box(on=None)
         plt.ion()
         plt.axis("off")
@@ -107,11 +109,15 @@ class Plotter:
 
         spine_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
         img_subdirs = [get_subdir(img_path) for img_path in img_list]
-        unique_subdirs = set(img_subdirs)
-        if len(unique_subdirs) > len(spine_colors):
+        subdir_colors = {}
+        for i, subdir in enumerate(img_subdirs):
+            if subdir not in subdir_colors:
+                subdir_colors[subdir] =spine_colors[i]
+
+        n_subdirs = len(subdir_colors.keys())
+        if n_subdirs > len(spine_colors):
             title = title + "\nMore subdirectories than colors!"
 
-        subdir_colors = {subdir: spine_colors[i] for i, subdir in enumerate(unique_subdirs)}
         for i in range(n_imgs):
             img_path = img_list[i]
             img = plt.imread(img_path)
@@ -132,7 +138,16 @@ class Plotter:
                 ax.spines[pos].set_linewidth(4)
 
             self.axes.append(ax)
-        plt.suptitle(title + "\n{}".format(unique_subdirs))
+        plt.suptitle(title)
+
+        if self.legend is not None:
+            self.legend.remove()
+        labels = [subdir for subdir in subdir_colors.keys()]
+        handles = [patches.Patch(color=c) for c in subdir_colors.values()]
+        self.legend = plt.figlegend(labels=labels, handles=handles,
+                                    loc="upper center", bbox_to_anchor=(0.5, 1),
+                                    ncol=n_subdirs, frameon=False,
+                                    borderpad=3)
         plt.draw()
 
 
