@@ -26,14 +26,18 @@ def parse_input(input_, n_imgs):
     return command, indices
 
 
-def get_dupe_dirs(dupe_list):
-    return set([dupe.split("/")[1] for dupe in dupe_list])
+def get_subdir(file):
+    return file.split(os.sep)[-2]
+
+
+def get_subdirs(file_list):
+    return set([get_subdir(dupe) for dupe in file_list])
 
 
 def find_contaminated_dirs(dupes):
     contaminated_dirs = []
     for dupe_list in dupes:
-        dupe_dirs = get_dupe_dirs(dupe_list)
+        dupe_dirs = get_subdirs(dupe_list)
         if len(dupe_dirs) > 1:
             contaminated_dirs.append(dupe_dirs)
 
@@ -91,7 +95,7 @@ class Plotter:
         self.axes = []
         plt.draw()
 
-    def draw_images(self, img_list):
+    def draw_images(self, img_list, title=None):
         n_imgs = len(img_list)
         if n_imgs > self.max_imgs_per_row:
             n_rows = int(np.ceil(n_imgs / self.max_imgs_per_row))
@@ -100,6 +104,13 @@ class Plotter:
             n_rows = 1
             n_cols = n_imgs
 
+        spine_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+        img_subdirs = [get_subdir(img_path) for img_path in img_list]
+        unique_subdirs = set(img_subdirs)
+        if len(unique_subdirs) > len(spine_colors):
+            raise ValueError("More subdirectories than colors!")
+
+        subdir_colors = {subdir: spine_colors[i] for i, subdir in enumerate(unique_subdirs)}
         for i in range(n_imgs):
             img_path = img_list[i]
             img = plt.imread(img_path)
@@ -109,32 +120,41 @@ class Plotter:
             ax.set_xticks([])
             ax.set_yticks([])
             ax.set_xlabel(i)
-            ax.spines["right"].set_visible(False)
-            ax.spines["left"].set_visible(False)
-            ax.spines["top"].set_visible(False)
-            ax.spines["bottom"].set_visible(False)
+
+            subdir = img_subdirs[i]
+            c = subdir_colors[subdir]
+            for pos in ("right", "left", "top", "bottom"):
+                # ax.spines[pos].set_visible(False)
+                ax.spines[pos].set_color(c)
+                ax.spines[pos].set_linewidth(2)
+
             self.axes.append(ax)
+        plt.suptitle(title)
         plt.draw()
 
 
 # %%
-dupe_file = sys.argv[1] # "data/clean/dupes_exact_phash1.txt"
+dupe_file = sys.argv[1]  # "data/clean/dupes_exact_phash1.txt"
 PATH, filename = os.path.split(dupe_file)
 
 with open(dupe_file) as f:
     data = f.read()
-    dupes = data.split("\n\n")
-    dupes = list(filter(None, dupes))
-    dupes = [dupe.split("\n") for dupe in dupes]
-    print("N dupes:", len(dupes))
+    dupe_lists = data.split("\n\n")
+    dupe_lists = list(filter(None, dupe_lists))
+    dupe_lists = [dupe.split("\n") for dupe in dupe_lists]
+    n_dupe_lists = len(dupe_lists)
+    print("N dupes:", len(dupe_lists))
 
 # %%
-dupe_iter = iter(dupes)
+dupe_iter = iter(dupe_lists)
 plotter = Plotter()
+i = 0
 do = True
 while do:
     try:
         dupe_list = next(dupe_iter)
+        dupe_dirs = get_subdirs(dupe_list)
+        i = i + 1
     except StopIteration:
         break
 
@@ -149,7 +169,7 @@ while do:
 
     img_list = [os.path.join(PATH, dupe) for dupe in dupe_list]
     plotter.clear_figure()
-    plotter.draw_images(img_list)
+    plotter.draw_images(img_list, title="{}/{}".format(i, n_dupe_lists))
 
     stay = True
     while stay:
