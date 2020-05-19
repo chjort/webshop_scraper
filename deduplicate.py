@@ -114,9 +114,11 @@ class Plotter:
         for i in range(n_imgs):
             img_path = img_list[i]
             img = plt.imread(img_path)
+            img_res = "{}x{}".format(img.shape[0], img.shape[1])
             ax = self.fig.add_subplot(n_rows, n_cols, i + 1)
 
             ax.imshow(img)
+            ax.set_title(img_res)
             ax.set_xticks([])
             ax.set_yticks([])
             ax.set_xlabel(i)
