@@ -128,10 +128,10 @@ class Plotter:
             for pos in ("right", "left", "top", "bottom"):
                 # ax.spines[pos].set_visible(False)
                 ax.spines[pos].set_color(c)
-                ax.spines[pos].set_linewidth(2)
+                ax.spines[pos].set_linewidth(4)
 
             self.axes.append(ax)
-        plt.suptitle(title)
+        plt.suptitle(title + "\n{}".format(unique_subdirs))
         plt.draw()
 
 
