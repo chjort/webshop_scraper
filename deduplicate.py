@@ -45,6 +45,27 @@ def delete_file(filepath):
         os.remove(filepath)
 
 
+def move_file(filepath, dst):
+    if os.path.exists(filepath):
+        dst_path = os.path.split(dst)[0]
+        os.makedirs(dst_path, exist_ok=True)
+        os.rename(filepath, dst)
+
+
+def move_file_old(filepath):
+    if os.path.exists(filepath):
+        root = filepath.split(os.sep)[0]
+        rel_path = os.sep.join(filepath.split(os.sep)[1:])
+
+        dst_root = root + "_dupes"
+        dst = os.path.join(dst_root, rel_path)
+
+        dst_path = os.path.split(dst)[0]
+        os.makedirs(dst_path, exist_ok=True)
+
+        os.rename(filepath, dst)
+
+
 class Plotter:
     def __init__(self, max_imgs_per_row=4):
         self.max_imgs_per_row = max_imgs_per_row
@@ -52,6 +73,7 @@ class Plotter:
         self.axes = []
         plt.box(on=None)
         plt.ion()
+        plt.axis("off")
         plt.show()
 
     def delete_subplot(self, idx):
@@ -96,8 +118,7 @@ class Plotter:
 
 
 # %%
-dupe_file = sys.argv[1]
-# dupe_file = "data/clean/dupes_exact_phash1.txt"
+dupe_file = sys.argv[1] # "data/clean/dupes_exact_phash1.txt"
 PATH, filename = os.path.split(dupe_file)
 
 with open(dupe_file) as f:
@@ -116,6 +137,15 @@ while do:
         dupe_list = next(dupe_iter)
     except StopIteration:
         break
+
+    # Compute output path to move duplicates to
+    dupe_move_dst = []
+    for dupe in dupe_list:
+        dupe_split = dupe.split(os.sep)
+        dupe_split[0] = dupe_split[0] + "_dupes"
+        dupe_dst = os.sep.join(dupe_split)
+        dupe_dst = os.path.join(PATH, dupe_dst)
+        dupe_move_dst.append(dupe_dst)
 
     img_list = [os.path.join(PATH, dupe) for dupe in dupe_list]
     plotter.clear_figure()
@@ -136,13 +166,15 @@ while do:
                 if command == "d":
                     for idx in indices:
                         img_path = img_list[idx]
-                        delete_file(img_path)
+                        dupe_dst = dupe_move_dst[idx]
+                        move_file(img_path, dupe_dst)
                         plotter.delete_subplot(idx)
                 elif command == "k":
                     for idx in range(len(img_list)):
                         if idx not in indices:
                             img_path = img_list[idx]
-                            delete_file(img_path)
+                            dupe_dst = dupe_move_dst[idx]
+                            move_file(img_path, dupe_dst)
                             plotter.delete_subplot(idx)
                 else:
                     raise ValueError("Invalid command.")
