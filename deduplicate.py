@@ -12,14 +12,14 @@ def cast_int(x):
         raise ValueError("Not an int {}".format(x))
 
 
-def parse_input(input_):
+def parse_input(input_, n_imgs):
     command = input_[0]
-    assert command in ("d", "k")
+    assert command in ("d", "k"), "Invalid command."
 
     indices = []
     for i in input_[1:]:
         idx = cast_int(i)
-        if idx >= len(img_list):
+        if idx >= n_imgs:
             raise ValueError("Index out of range {}".format(idx))
         indices.append(idx)
 
@@ -40,74 +40,36 @@ def find_contaminated_dirs(dupes):
     return contaminated_dirs
 
 
-# class Plotter:
-#     def __init__(self, imgs_per_row=4):
-#         self.imgs_per_row = imgs_per_row
-#
-#     def new_plot(self, img_list):
-#         n_imgs = len(img_list)
-#         n_rows = int(np.ceil(n_imgs / self.imgs_per_row))
-#         self.fig, self.axes = plt.subplots(n_rows, self.imgs_per_row)
-#         self.axes = self.axes.reshape(-1)
-#
-#         self.draw_images(self.axes, img_list)
-#         plt.box(on=None)
-#         plt.ion()
-#         plt.show()
-#         return self.fig
-#
-#     def update_plot(self, img_list):
-#         self.draw_images(self.axes, img_list)
-#         plt.draw()
-#         return self.fig
-#
-#     @staticmethod
-#     def draw_images(axes, img_list):
-#         for i in range(len(axes)):
-#             try:
-#                 img_path = img_list[i]
-#                 img = plt.imread(img_path)
-#                 axes[i].imshow(img)
-#                 axes[i].set_xticks([])
-#                 axes[i].set_yticks([])
-#                 axes[i].set_xlabel(i)
-#                 axes[i].spines["right"].set_visible(False)
-#                 axes[i].spines["left"].set_visible(False)
-#                 axes[i].spines["top"].set_visible(False)
-#                 axes[i].spines["bottom"].set_visible(False)
-#             except IndexError:
-#                 axes[i].clear()
-#                 axes[i].axis("off")
+def delete_file(filepath):
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
-
-# def plot_imgs(img_list, imgs_per_row=4):
-#     n_imgs = len(img_list)
-#     n_rows = int(np.ceil(n_imgs / imgs_per_row))
-#     fig, axes = plt.subplots(n_rows, imgs_per_row)
-#     axes = axes.reshape(-1)
-#
-#     for i in range(len(axes)):
-#         try:
-#             img_path = img_list[i]
-#             img = plt.imread(img_path)
-#             axes[i].imshow(img)
-#             axes[i].set_xticks([])
-#             axes[i].set_yticks([])
-#             axes[i].set_xlabel(i)
-#             axes[i].spines["right"].set_visible(False)
-#             axes[i].spines["left"].set_visible(False)
-#             axes[i].spines["top"].set_visible(False)
-#             axes[i].spines["bottom"].set_visible(False)
-#         except IndexError:
-#             axes[i].axis("off")
-#     plt.box(on=None)
-#     plt.show()
 
 class Plotter:
     def __init__(self, max_imgs_per_row=4):
         self.max_imgs_per_row = max_imgs_per_row
+        self.fig = plt.figure()
+        self.axes = []
+        plt.box(on=None)
+        plt.ion()
+        plt.show()
 
-    def new_plot(self, img_list):
+    def delete_subplot(self, idx):
+        ax = self.axes[idx]
+        try:
+            ax.remove()
+        except KeyError:
+            pass
+
+        plt.draw()
+
+    def clear_figure(self):
+        for i in range(len(self.axes)):
+            self.delete_subplot(i)
+        self.axes = []
+        plt.draw()
+
+    def draw_images(self, img_list):
         n_imgs = len(img_list)
         if n_imgs > self.max_imgs_per_row:
             n_rows = int(np.ceil(n_imgs / self.max_imgs_per_row))
@@ -116,43 +78,26 @@ class Plotter:
             n_rows = 1
             n_cols = n_imgs
 
-        # self.fig, self.axes = plt.subplots(n_rows, n_cols)
-        # self.axes = self.axes.reshape(-1)
-        self.fig = plt.figure()
-        self.axes = []
+        for i in range(n_imgs):
+            img_path = img_list[i]
+            img = plt.imread(img_path)
+            ax = self.fig.add_subplot(n_rows, n_cols, i + 1)
 
-        self.draw_images(self.axes, img_list)
-        plt.box(on=None)
-        plt.ion()
-        plt.show()
-        return self.fig
-
-    def update_plot(self, img_list):
-        self.draw_images(self.axes, img_list)
+            ax.imshow(img)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_xlabel(i)
+            ax.spines["right"].set_visible(False)
+            ax.spines["left"].set_visible(False)
+            ax.spines["top"].set_visible(False)
+            ax.spines["bottom"].set_visible(False)
+            self.axes.append(ax)
         plt.draw()
-        return self.fig
-
-    @staticmethod
-    def draw_images(axes, img_list):
-        for i in range(len(axes)):
-            try:
-                img_path = img_list[i]
-                img = plt.imread(img_path)
-                axes[i].imshow(img)
-                axes[i].set_xticks([])
-                axes[i].set_yticks([])
-                axes[i].set_xlabel(i)
-                axes[i].spines["right"].set_visible(False)
-                axes[i].spines["left"].set_visible(False)
-                axes[i].spines["top"].set_visible(False)
-                axes[i].spines["bottom"].set_visible(False)
-            except IndexError:
-                axes[i].clear()
-                axes[i].axis("off")
 
 
 # %%
 dupe_file = sys.argv[1]
+# dupe_file = "data/clean/dupes_exact_phash1.txt"
 PATH, filename = os.path.split(dupe_file)
 
 with open(dupe_file) as f:
@@ -164,7 +109,6 @@ with open(dupe_file) as f:
 
 # %%
 dupe_iter = iter(dupes)
-
 plotter = Plotter()
 do = True
 while do:
@@ -174,11 +118,11 @@ while do:
         break
 
     img_list = [os.path.join(PATH, dupe) for dupe in dupe_list]
-    plotter.new_plot(img_list)
+    plotter.clear_figure()
+    plotter.draw_images(img_list)
 
     stay = True
     while stay:
-        plotter.update_plot(img_list)
         inp = input("Enter command: ")
         if inp == "":
             stay = False
@@ -188,16 +132,18 @@ while do:
             break
         else:
             try:
-                command, indices = parse_input(inp)
+                command, indices = parse_input(inp, len(img_list))
                 if command == "d":
-                    for idx in sorted(indices, reverse=True):
-                        img_path = img_list.pop(idx)
-                        os.remove(img_path)
+                    for idx in indices:
+                        img_path = img_list[idx]
+                        delete_file(img_path)
+                        plotter.delete_subplot(idx)
                 elif command == "k":
-                    for idx in range(len(img_list) - 1, -1, -1):
+                    for idx in range(len(img_list)):
                         if idx not in indices:
-                            img_path = img_list.pop(idx)
-                            os.remove(img_path)
+                            img_path = img_list[idx]
+                            delete_file(img_path)
+                            plotter.delete_subplot(idx)
                 else:
                     raise ValueError("Invalid command.")
 
