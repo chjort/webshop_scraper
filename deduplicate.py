@@ -78,7 +78,6 @@ class Plotter:
         plt.box(on=None)
         plt.ion()
         plt.axis("off")
-        # plt.title("  ")
         plt.tight_layout(rect=[0, 0.03, 1, 0.92])
         plt.show()
 
