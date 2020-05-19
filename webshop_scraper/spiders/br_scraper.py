@@ -36,6 +36,7 @@ class BRScraper(WebshopScraper):
 
     def get_product_image_urls(self, response):
         imgs = response.xpath("//li[@data-media_big]//@data-media_big").getall()
+        imgs = [img_url for img_url in imgs if img_url.startswith("http")]
         return imgs
 
     def get_next_page_url(self, response):
