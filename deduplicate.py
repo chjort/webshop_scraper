@@ -1,3 +1,4 @@
+import ast
 import os
 import sys
 
@@ -38,11 +39,11 @@ def get_subdirs(file_list):
 def find_contaminated_dirs(dupes):
     contaminated_dirs = []
     for dupe_list in dupes:
-        dupe_dirs = get_subdirs(dupe_list)
+        dupe_dirs = tuple(get_subdirs(dupe_list))
         if len(dupe_dirs) > 1:
             contaminated_dirs.append(dupe_dirs)
 
-    return contaminated_dirs
+    return set(contaminated_dirs)
 
 
 def delete_file(filepath):
@@ -151,8 +152,38 @@ class Plotter:
         plt.draw()
 
 
+class Whitelist:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.file = self.get_file(file_path)
+        self.whitelist = self.get_whitelist()
+
+    def add(self, tuple):
+        self.file.write(str(tuple) + "\n")
+        self.file.flush()
+        os.fsync(self.file.fileno())
+        self.whitelist.add(tuple)
+
+    def get_file(self, file_path):
+        if os.path.exists(file_path):
+            return open(file_path, "a")
+        else:
+            return open(file_path, "w")
+
+    def get_whitelist(self):
+        with open(self.file_path, "r") as f:
+            lines = f.read().split("\n")
+            lines = list(filter(None, lines))
+
+        whitelist = set()
+        for line in lines:
+            data_tuple = ast.literal_eval(line)
+            whitelist.add(data_tuple)
+        return whitelist
+
 # %%
-dupe_file = sys.argv[1]  # "data/clean/dupes_exact_phash1.txt"
+dupe_file = sys.argv[1]
+# dupe_file = "data/clean/dupes_outsourced_amazon_phash4.txt"
 PATH, filename = os.path.split(dupe_file)
 
 with open(dupe_file) as f:
@@ -164,6 +195,7 @@ with open(dupe_file) as f:
     print("N dupes:", len(dupe_lists))
 
 # %%
+whitelist = Whitelist(os.path.join(PATH, "whitelist.txt"))
 dupe_iter = iter(dupe_lists)
 plotter = Plotter()
 i = 0
@@ -171,7 +203,6 @@ do = True
 while do:
     try:
         dupe_list = next(dupe_iter)
-        dupe_dirs = get_subdirs(dupe_list)
         i = i + 1
     except StopIteration:
         break
@@ -185,7 +216,10 @@ while do:
         dupe_dst = os.path.join(PATH, dupe_dst)
         dupe_move_dst.append(dupe_dst)
 
-    img_list = [os.path.join(PATH, dupe) for dupe in dupe_list]
+    img_list = tuple(sorted([os.path.join(PATH, dupe) for dupe in dupe_list]))
+    if img_list in whitelist.whitelist:
+        continue
+
     plotter.clear_figure()
     plotter.draw_images(img_list, title="{}/{}".format(i, n_dupe_lists))
 
@@ -193,6 +227,7 @@ while do:
     while stay:
         inp = input("Enter command: ")
         if inp == "":
+            whitelist.add(img_list)
             stay = False
         elif inp == "q":
             stay = False
