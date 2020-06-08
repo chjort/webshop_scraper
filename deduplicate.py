@@ -1,10 +1,11 @@
+import argparse
 import ast
 import os
-import sys
+import subprocess
 
 import matplotlib.pyplot as plt
-from matplotlib import patches
 import numpy as np
+from matplotlib import patches
 
 
 def cast_int(x):
@@ -29,7 +30,8 @@ def parse_input(input_, n_imgs):
 
 
 def get_subdir(file):
-    return file.split(os.sep)[-2]
+    sub_paths = file.split(os.sep)
+    return os.path.join(*sub_paths[-3:-1])
 
 
 def get_subdirs(file_list):
@@ -181,9 +183,18 @@ class Whitelist:
             whitelist.add(data_tuple)
         return whitelist
 
+
 # %%
-dupe_file = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument("--file", type=str, required=True, help="File created using 'imgdupes'.")
+task = parser.add_mutually_exclusive_group(required=True)
+task.add_argument("--dedup", action="store_true", help="Deduplicate images.")
+task.add_argument("--purify", action="store_true", help="Purify folders.")
+args = parser.parse_args()
+
+# %%
 # dupe_file = "data/clean/dupes_phash4.txt"
+dupe_file = args.file
 PATH, filename = os.path.split(dupe_file)
 
 with open(dupe_file) as f:
@@ -195,71 +206,92 @@ with open(dupe_file) as f:
     print("N dupes:", len(dupe_lists))
 
 # %%
-whitelist = Whitelist(os.path.join(PATH, "whitelist.txt"))
-dupe_iter = iter(dupe_lists)
-plotter = Plotter()
-i = 0
-do = True
-while do:
-    try:
-        dupe_list = next(dupe_iter)
-        i = i + 1
-    except StopIteration:
-        break
+if args.purify:
+    cont = find_contaminated_dirs(dupe_lists)
+    print("Number of contaminated dirs: {}".format(len(cont)))
+    for i, tup in enumerate(cont):
+        for path in tup:
+            path = os.path.join(PATH, "no_duplicates", path)
+            subprocess.Popen(["xdg-open", path])
 
-    # Compute output path to move duplicates to
-    dupe_move_dst = []
-    for dupe in dupe_list:
-        dupe_split = dupe.split(os.sep)[1:]
-        dupe_dst = os.sep.join(dupe_split)
-        dupe_dst = os.path.join(PATH, "duplicates", dupe_dst)
-        dupe_move_dst.append(dupe_dst)
+        print(i+1, end=": ")
+        inp = input("Press any key to continue.")
 
-    img_list = tuple(sorted([os.path.join(PATH, dupe) for dupe in dupe_list]))
-    if img_list in whitelist.whitelist:
-        continue
-
-    plotter.clear_figure()
-    plotter.draw_images(img_list, title="{}/{}".format(i, n_dupe_lists))
-
-    stay = True
-    while stay:
-        inp = input("Enter command: ")
-        if inp == "":
-            whitelist.add(img_list)
-            stay = False
-        elif inp == "q":
-            stay = False
-            do = False
+# %%
+else:
+    whitelist = Whitelist(os.path.join(PATH, "whitelist.txt"))
+    dupe_iter = iter(dupe_lists)
+    plotter = Plotter()
+    i = 0
+    do = True
+    while do:
+        try:
+            dupe_list = next(dupe_iter)
+            dupe_list = tuple(sorted(dupe_list))
+            i = i + 1
+        except StopIteration:
             break
-        else:
-            try:
-                command, indices = parse_input(inp, len(img_list))
-                if command == "d":
-                    for idx in indices:
-                        img_path = img_list[idx]
-                        dupe_dst = dupe_move_dst[idx]
-                        move_file(img_path, dupe_dst)
-                        plotter.delete_subplot(idx)
-                elif command == "k":
-                    for idx in range(len(img_list)):
-                        if idx not in indices:
+
+        # Compute output path to move duplicates to
+        dupe_move_dst = []
+        for dupe in dupe_list:
+            dupe_split = dupe.split(os.sep)[1:]
+            dupe_dst = os.sep.join(dupe_split)
+            dupe_dst = os.path.join(PATH, "duplicates", dupe_dst)
+            dupe_move_dst.append(dupe_dst)
+
+        if dupe_list in whitelist.whitelist:
+            continue
+
+        img_list = tuple(sorted([os.path.join(PATH, dupe) for dupe in dupe_list]))
+
+        plotter.clear_figure()
+        plotter.draw_images(img_list, title="{}/{}".format(i, n_dupe_lists))
+
+        stay = True
+        ignore_idxs = set()
+        while stay:
+            inp = input("Enter command: ")
+            if inp == "":
+                to_whitelist = tuple([path for i, path in enumerate(dupe_list) if i not in ignore_idxs])
+                if len(to_whitelist) > 1:
+                    whitelist.add(to_whitelist)
+                stay = False
+                ignore_idxs = set()
+            elif inp == "q":
+                stay = False
+                do = False
+                break
+            else:
+                try:
+                    command, indices = parse_input(inp, len(img_list))
+                    if command == "d":
+                        for idx in indices:
                             img_path = img_list[idx]
                             dupe_dst = dupe_move_dst[idx]
                             move_file(img_path, dupe_dst)
                             plotter.delete_subplot(idx)
-                else:
-                    raise ValueError("Invalid command.")
+                            ignore_idxs.add(idx)
+                    elif command == "k":
+                        for idx in range(len(img_list)):
+                            if idx not in indices:
+                                img_path = img_list[idx]
+                                dupe_dst = dupe_move_dst[idx]
+                                move_file(img_path, dupe_dst)
+                                plotter.delete_subplot(idx)
+                                ignore_idxs.add(idx)
+                    else:
+                        raise ValueError("Invalid command.")
 
-                if len(img_list) == 0:
-                    stay = False
-                else:
-                    stay = True
+                    if len(img_list) == 0:
+                        stay = False
+                    else:
+                        stay = True
 
-            except Exception as e:
-                print(e)
+                except Exception as e:
+                    print(e)
 
-#%%
+# %%
 # def change_path(path):
 #     path = "/".join(path.split("/")[2:])
 #     path = os.path.join("no_duplicates", path)
@@ -269,7 +301,7 @@ while do:
 # whitelist = Whitelist(os.path.join(PATH, "whitelist.txt"))
 # wht = set()
 # for tup in whitelist.whitelist:
-#     tup = tuple(change_path(path) for path in tup)
+#     tup = tuple(sorted(change_path(path) for path in tup))
 #     wht.add(tup)
 #
 # for tup in wht:
