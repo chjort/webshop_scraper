@@ -183,7 +183,7 @@ class Whitelist:
 
 # %%
 dupe_file = sys.argv[1]
-# dupe_file = "data/clean/dupes_outsourced_amazon_phash4.txt"
+# dupe_file = "data/clean/dupes_phash4.txt"
 PATH, filename = os.path.split(dupe_file)
 
 with open(dupe_file) as f:
@@ -210,10 +210,9 @@ while do:
     # Compute output path to move duplicates to
     dupe_move_dst = []
     for dupe in dupe_list:
-        dupe_split = dupe.split(os.sep)
-        dupe_split[0] = dupe_split[0] + "_dupes"
+        dupe_split = dupe.split(os.sep)[1:]
         dupe_dst = os.sep.join(dupe_split)
-        dupe_dst = os.path.join(PATH, dupe_dst)
+        dupe_dst = os.path.join(PATH, "duplicates", dupe_dst)
         dupe_move_dst.append(dupe_dst)
 
     img_list = tuple(sorted([os.path.join(PATH, dupe) for dupe in dupe_list]))
@@ -259,3 +258,19 @@ while do:
 
             except Exception as e:
                 print(e)
+
+#%%
+# def change_path(path):
+#     path = "/".join(path.split("/")[2:])
+#     path = os.path.join("no_duplicates", path)
+#     return path
+#
+#
+# whitelist = Whitelist(os.path.join(PATH, "whitelist.txt"))
+# wht = set()
+# for tup in whitelist.whitelist:
+#     tup = tuple(change_path(path) for path in tup)
+#     wht.add(tup)
+#
+# for tup in wht:
+#     whitelist.add(tup)
